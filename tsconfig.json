@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "module": "CommonJS",
+    "target": "es6",
+    "allowJs": true,
+    "sourceMap": true,
+    "lib": ["DOM", "ES2020"],
+    "moduleResolution": "node"
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.vue",
+    "./docs/.vuepress/**/*.vue",
+    "./docs/.vuepress/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
