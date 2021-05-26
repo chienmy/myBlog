@@ -6,7 +6,7 @@
     </div>
     <span class="prefix" v-html="prefix"></span>
     <span> </span>
-    <input type="text" id="input-text" style="width: 919px;">
+    <input type="text" id="input-text" v-model="inputText" style="width: 919px;">
   </div>
 </template>
 
@@ -23,6 +23,8 @@ export default Vue.extend({
       screenText: [],
       // 输入行显示的前缀，之后会把其中的变量拆分出来
       prefix: "",
+      // 输入文本框文本
+      inputText: ""
     }
   },
   computed: {
@@ -31,40 +33,34 @@ export default Vue.extend({
   methods: {
   },
   created() {
-    this.terminal = new Terminal(this.$site);
+    this.terminal = new Terminal(this.$site, this.$router);
     this.screenText = this.terminal.outputText();
     this.prefix = this.terminal.outputPrefix();
   },
   mounted() {
     document.getElementById("input-text").onkeydown = (event: KeyboardEvent) => {
-      if (event.code === "Enter") {
+      if (event.key === "Enter") {
         // 输入命令
-        const command = (<HTMLInputElement>document.getElementById("input-text")).value;
-        this.terminal.inputCommand(command);
+        this.terminal.inputCommand(this.inputText);
         // 更新屏幕内容
         this.screenText = this.terminal.outputText();
         this.prefix = this.terminal.outputPrefix();
         // 清空输入行
-        (<HTMLInputElement>document.getElementById("input-text")).value = "";
+        this.inputText = "";
+      } else if (event.key == "ArrowUp") {
+        this.inputText = this.terminal.getPreCommand(this.inputText);
+      } else if (event.key == "ArrowDown") {
+        this.inputText = this.terminal.getNextCommand(this.inputText);
       }
+      // this.$forceUpdate();
     };
-    console.log(this.$site.pages)
+    console.log(this.$site.pages);
+    document.getElementById("input-text").focus();
   }
 });
 </script>
 
 <style>
-body {
-  font-family: Monaco, Cutive Mono, Courier New, Consolas, monospace;
-  font-weight: 600;
-  font-size: 17px;
-  line-height: 25px;
-  color: #fff;
-  background-color: #131416;
-  padding: 5px;
-  margin: 0;
-}
-
 #input-text {
   display: inline-block;
   background-color: transparent;
