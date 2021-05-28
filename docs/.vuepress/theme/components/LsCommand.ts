@@ -15,7 +15,8 @@ export default class LsCommand extends BaseCommand {
       if (this.terminal.workPath == "") {
         return this.terminal.allCategories.join(" ");
       }
-    } else {
+    }
+    // else {
       const category = argv.length == 0 ? this.terminal.workPath : argv[0];
       if (! this.terminal.hasCategory(category)) {
         this.callError(`No such category named ${category}`);
@@ -26,7 +27,17 @@ export default class LsCommand extends BaseCommand {
       } else {
         return pages.map((p) => (p.title)).join(" ");
       }
+    // }
+  }
+
+  tabComplete(args: string[]): [string, string] {
+    const [options, argv] = this.parseArgs(args,[1, 1]);
+    for (const c of this.terminal.allCategories) {
+      if (c.startsWith(argv[0])) {
+        return [argv[0], c];
+      }
     }
+    return undefined;
   }
 
   private static formatTime(timeStr: string): string {

@@ -21,4 +21,14 @@ export default class CdCommand extends BaseCommand {
     return undefined;
   }
 
+  tabComplete(args: string[]): [string, string] {
+    const [options, argv] = this.parseArgs(args,[1, 1]);
+    for (const c of this.terminal.allCategories) {
+      if (c.startsWith(argv[0])) {
+        return [argv[0], c];
+      }
+    }
+    return undefined;
+  }
+
 }

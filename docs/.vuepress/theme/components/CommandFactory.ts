@@ -1,4 +1,4 @@
-import Command from "./BaseCommand";
+import BaseCommand from "./BaseCommand";
 import { Terminal } from "./Terminal";
 import EchoCommand from "./EchoCommand";
 import LsCommand from "./LsCommand";
@@ -9,31 +9,22 @@ import CdCommand from "./CdCommand";
 export default class CommandFactory {
 
   private readonly terminal: Terminal;
+  private commandMap: Map<string, BaseCommand>;
 
   constructor(terminal: Terminal) {
     this.terminal = terminal;
-  }
-
-  private buildCommand(name: string): Command | undefined {
-    switch (name) {
-      case "cat":
-        return new CatCommand(this.terminal);
-      case "cd":
-        return new CdCommand(this.terminal);
-      case "clear":
-        return new ClearCommand(this.terminal);
-      case "echo":
-        return new EchoCommand(this.terminal);
-      case "ls":
-        return new LsCommand(this.terminal);
-      default:
-        return undefined;
-    }
+    this.commandMap = new Map<string, BaseCommand>([
+      ["cat", new CatCommand(this.terminal)],
+      ["cd", new CdCommand(this.terminal)],
+      ["clear", new ClearCommand(this.terminal)],
+      ["echo", new EchoCommand(this.terminal)],
+      ["ls", new LsCommand(this.terminal)]
+    ])
   }
 
   executeCommand(command: string) {
     const commands: string[] = command.trim().split(" ");
-    const commandFunc: Command = this.buildCommand(commands[0]);
+    const commandFunc: BaseCommand = this.commandMap.get(commands[0]);
     if (commandFunc != undefined) {
       try {
         // 在首位增加一位空位，符合nodejs的命令行参数格式
@@ -49,5 +40,26 @@ export default class CommandFactory {
     } else {
       this.terminal.addLines(`Error: Command <#f00>${commands[0]}</#> is not supported.`);
     }
+  }
+
+  tabComplete(command: string): string {
+    const commands: string[] = command.trim().split(" ");
+    const commandFunc: BaseCommand = this.commandMap.get(commands[0]);
+    if (commandFunc != undefined) {
+      try {
+        const completed = commandFunc.tabComplete([""].concat(commands));
+        if (completed != undefined) {
+          return commands.map((s) => (s == completed[0] ? completed[1] : s)).join(" ");
+        }
+      } catch (err) {
+        return command;
+      }
+    } else {
+      const arr = Array.from(this.commandMap.keys()).filter((c) => (c.startsWith(commands[0])))
+      if (arr.length == 1) {
+        return arr[0]
+      }
+    }
+    return command;
   }
 }

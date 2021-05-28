@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="s in screenText" :key="s" style="white-space: pre;line-height: 20px">
+    <div v-for="(s, index) in screenText" :key="index" style="white-space: pre;line-height: 20px">
       <span v-html="s"></span>
       <br/>
     </div>
@@ -49,13 +49,20 @@ export default Vue.extend({
         this.inputText = "";
       } else if (event.key == "ArrowUp") {
         this.inputText = this.terminal.getPreCommand(this.inputText);
+        event.preventDefault();
       } else if (event.key == "ArrowDown") {
         this.inputText = this.terminal.getNextCommand(this.inputText);
+        event.preventDefault();
+      } else if (event.key == "Tab") {
+        this.inputText = this.terminal.getTabCommand(this.inputText);
+        event.preventDefault();
       }
       // this.$forceUpdate();
     };
+    this.$nextTick(() => {
+      document.getElementById("input-text").focus();
+    });
     console.log(this.$site.pages);
-    document.getElementById("input-text").focus();
   }
 });
 </script>

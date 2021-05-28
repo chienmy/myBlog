@@ -70,25 +70,11 @@ export class Terminal {
         }
     }
 
-    // getTabCommand(command: string) {
-    //     if (command.length == 0) {
-    //         return "";
-    //     }
-    //     const commands: string[] = command.trim().split(" ");
-    //     if (commands.length == 1) {
-    //         const candidates = Array.from(this.commandMap.keys()).filter((name) => {
-    //             return name.startsWith(commands[0]);
-    //         })
-    //         if (candidates.length == 1) {
-    //             return candidates[0];
-    //         }
-    //     } else {
-    //
-    //     }
-    //     return command;
-    // }
+    getTabCommand(command: string) {
+        return this.commandFactory.tabComplete(command);
+    }
 
-    // ---Get函数部分---
+    // --- Get / Set ---
     get workPath(): string {
         return this._workPath;
     }
@@ -129,12 +115,23 @@ export class Terminal {
         return false;
     }
 
-    // ---工具函数部分---
+    getOnlyPage(pageTitle: string): PageComputed {
+        const pages = this.siteData.pages.filter((page) => page.title.startsWith(pageTitle));
+        if (pages.length == 1) return pages[0];
+        return undefined;
+    }
+
+    /*
+     *  ---工具函数部分---
+     */
+
+    // 清屏，回到初始状态
     clearScreen(): void {
         this._outputList = [];
         this.showWelcome();
     }
 
+    // 文章跳转
     showArticle(title: string): void {
         for (const page of this.siteData.pages) {
             if (page.title == title) {
@@ -144,24 +141,7 @@ export class Terminal {
         }
     }
 
-    /**
-     * 将自定义的格式化字符转换为html标签
-     * @param line 一次转换一行
-     */
-    private transformLine(line: string): string {
-        line = line.replace(/<(#[0-9a-f]{3,6})>/g, '<span style="color: $1">');
-        line = line.replace(/<\/#>/g, '</span>');
-        return line;
-    }
-
-    /**
-     * transformLine的多行版本
-     * @param lines 代表多行文本
-     */
-    private transformLines(lines: string[]): string[] {
-        return lines.map(value => this.transformLine(value));
-    }
-
+    // 向输出中添加新行
     addLines(lines: string[] | string) {
         if (typeof lines == "string") {
             this._outputList.push(this.transformLine(lines));
@@ -170,6 +150,19 @@ export class Terminal {
         }
     }
 
+    // 将自定义的格式化字符转换为html标签
+    private transformLine(line: string): string {
+        line = line.replace(/<(#[0-9a-f]{3,6})>/g, '<span style="color: $1">');
+        line = line.replace(/<\/#>/g, '</span>');
+        return line;
+    }
+
+    // transformLine的多行版本
+    private transformLines(lines: string[]): string[] {
+        return lines.map(value => this.transformLine(value));
+    }
+
+    // 展示欢迎信息
     private showWelcome() {
         this.addLines([
             "<#c01313>╔╦╗┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┬    ╔╗ ┬  ┌─┐┌─┐</#>",
