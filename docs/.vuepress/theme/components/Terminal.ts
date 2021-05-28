@@ -1,20 +1,18 @@
-import { SiteData } from "vuepress-types";
-import VueRouter from 'vue-router'
+import { PageComputed, SiteData } from "vuepress-types";
+import VueRouter from 'vue-router';
 import { getCategoryMap } from "../util";
-
-
-type CommandFunc = (args: string[]) => void;
+import CommandFactory from "./CommandFactory";
 
 export class Terminal {
 
     // 输入行显示的前缀
-    private prefix: string = "<#c13646>user</#>@<#3cbbc6>chienmy.github.io</#>";
-    private path: string = "";
-    private textList: string[] = [];
+    private _prefix: string = "<#c13646>user</#>@<#3cbbc6>chienmy.github.io</#>";
+    private _workPath: string = "";
+    private _outputList: string[] = [];
     private commandHistory: string[] = [];
     private historyIndex: number = 0;
     private tempCommand: string = "";
-    private commandMap = new Map<string, CommandFunc>();
+    private commandFactory: CommandFactory;
 
     private siteData: SiteData;
     private router: VueRouter;
@@ -26,16 +24,8 @@ export class Terminal {
         this.router = router;
         this.categoryMap = getCategoryMap(siteData.pages);
         // 设置初始显示
-        this.addLines([
-          "<#c01313>╔╦╗┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┬    ╔╗ ┬  ┌─┐┌─┐</#>",
-          "<#c5390d> ║ ├┤ ├┬┘│││││││├─┤│    ╠╩╗│  │ ││ ┬</#>",
-          "<#c95e07> ╩ └─┘┴└─┴ ┴┴┘└┘┴ ┴┴─┘  ╚═╝┴─┘└─┘└─┘</#>"]);
-        // 绑定命令，不绑定则this指向不正确
-        this.bindCommand("cat", this.catCommand);
-        this.bindCommand("cd", this.cdCommand);
-        this.bindCommand("clear", this.clearCommand);
-        this.bindCommand("echo", this.echoCommand);
-        this.bindCommand("ls", this.lsCommand);
+        this.showWelcome();
+        this.commandFactory = new CommandFactory(this);
     }
 
     /**
@@ -44,7 +34,7 @@ export class Terminal {
      */
     inputCommand(command: string) {
         console.log(command);
-        this.textList.push(this.outputPrefix() + " " + command);
+        this._outputList.push(this.prefix + " " + command);
         // 命令为空直接结束
         if (command.length == 0) {
             return;
@@ -54,22 +44,7 @@ export class Terminal {
         this.historyIndex = this.commandHistory.length;
         // 临时命令设置为空
         this.tempCommand = "";
-        const commands: string[] = command.trim().split(" ");
-        const commandFunc = this.commandMap.get(commands[0]);
-        if (commandFunc != undefined) {
-            commandFunc(commands.slice(1));
-        } else {
-            this.textList.push(`Error: Command <#f00>${commands[0]}</#> not support.`)
-        }
-    }
-
-    outputPrefix() {
-        const s = this.path.length > 0 ? "/" : "";
-        return this.transformLine(`[${this.prefix} ~${s}${this.path}]`);
-    }
-
-    outputText() {
-        return this.transformLines(this.textList);
+        this.commandFactory.executeCommand(command.trim());
     }
 
     // ---控制按键输入部分---
@@ -95,85 +70,78 @@ export class Terminal {
         }
     }
 
-    getTabCommand(command: string) {
+    // getTabCommand(command: string) {
+    //     if (command.length == 0) {
+    //         return "";
+    //     }
+    //     const commands: string[] = command.trim().split(" ");
+    //     if (commands.length == 1) {
+    //         const candidates = Array.from(this.commandMap.keys()).filter((name) => {
+    //             return name.startsWith(commands[0]);
+    //         })
+    //         if (candidates.length == 1) {
+    //             return candidates[0];
+    //         }
+    //     } else {
+    //
+    //     }
+    //     return command;
+    // }
 
+    // ---Get函数部分---
+    get workPath(): string {
+        return this._workPath;
     }
 
-    // ---命令处理函数部分---
-    catCommand(args: string[]) {
-        if (args.length == 0) {
-            this.addLines("cat: Missing required arguments. Usage: cat [file_title]");
-        } else {
-            for (const page of this.siteData.pages) {
-                if (page.title == args[0]) {
-                    this.router.push(page.path);
-                    return;
-                }
+    set workPath(path: string) {
+        this._workPath = path;
+    }
+
+    get allCategories(): string[] {
+        return Array.from(this.categoryMap.keys());
+    }
+
+    get prefix(): string {
+        const s = this._workPath.length > 0 ? "/" : "";
+        return this.transformLine(`[${this._prefix} ~${s}${this._workPath}]`);
+    }
+
+    get output(): string[] {
+        return this.transformLines(this._outputList);
+    }
+
+    getPagesByCategory(category: string): PageComputed[] {
+        return this.siteData.pages.filter((page) => {
+            return this.categoryMap.get(category).indexOf(page.key) >= 0;
+        })
+    }
+
+    hasCategory(category: string): boolean {
+        return this.categoryMap.get(category) != undefined;
+    }
+
+    hasPage(pageTitle: string): boolean {
+        this.siteData.pages.forEach((page) => {
+            if (page.title == pageTitle) {
+                return true;
             }
-            this.addLines("cat: File not found.")
-        }
-    }
-
-    cdCommand(args: string[]) {
-        if (args.length == 0) {
-            this.addLines("cd: Missing required arguments. Usage: cat [category_name] | ..");
-        } else {
-            if (args[0] == "..") {
-                if (this.path.length > 0) {
-                    this.path = "";
-                }
-            } else if (this.categoryMap.get(args[0]) != undefined) {
-                this.path = args[0];
-            } else {
-                this.addLines("cd: No such category " + args[0]);
-            }
-        }
-    }
-
-    clearCommand(args: string[]) {
-        this.textList = [];
-        this.addLines([
-            "╔╦╗┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┬    ╔╗ ┬  ┌─┐┌─┐",
-            " ║ ├┤ ├┬┘│││││││├─┤│    ╠╩╗│  │ ││ ┬",
-            " ╩ └─┘┴└─┴ ┴┴┘└┘┴ ┴┴─┘  ╚═╝┴─┘└─┘└─┘"]);
-    }
-
-    lsCommand(args: string[]) {
-        if (args.length == 0) {
-            if (this.path == "") {
-                this.addLines(Array.from(this.categoryMap.keys()).join(" "));
-            } else {
-                const pageNames = this.siteData.pages.filter((page) => {
-                    return this.categoryMap.get(this.path).indexOf(page.key) >= 0;
-                }).map((page) => {
-                    return page.title;
-                })
-                this.addLines(pageNames.join(" "));
-            }
-        } else {
-            const category = args[0];
-            const keys = this.categoryMap.get(category);
-            if (keys == undefined) {
-                this.addLines("Error: No such category " + category);
-            } else {
-                const pageNames = this.siteData.pages.filter((page) => {
-                    return keys.indexOf(page.key) >= 0;
-                }).map((page) => {
-                    return page.title;
-                })
-                this.addLines(pageNames.join(" "));
-            }
-        }
-    }
-
-    echoCommand(args: string[]) {
-        this.textList.push(args.join(" "));
+        });
+        return false;
     }
 
     // ---工具函数部分---
-    private bindCommand(name: string, func: CommandFunc) {
-        func = func.bind(this);
-        this.commandMap.set(name, func);
+    clearScreen(): void {
+        this._outputList = [];
+        this.showWelcome();
+    }
+
+    showArticle(title: string): void {
+        for (const page of this.siteData.pages) {
+            if (page.title == title) {
+                this.router.push(page.path);
+                return;
+            }
+        }
     }
 
     /**
@@ -194,11 +162,18 @@ export class Terminal {
         return lines.map(value => this.transformLine(value));
     }
 
-    private addLines(lines: string[] | string) {
+    addLines(lines: string[] | string) {
         if (typeof lines == "string") {
-            this.textList.push(this.transformLine(lines));
+            this._outputList.push(this.transformLine(lines));
         } else {
-            this.textList.push.apply(this.textList, this.transformLines(lines));
+            this._outputList.push.apply(this._outputList, this.transformLines(lines));
         }
+    }
+
+    private showWelcome() {
+        this.addLines([
+            "<#c01313>╔╦╗┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┬    ╔╗ ┬  ┌─┐┌─┐</#>",
+            "<#c5390d> ║ ├┤ ├┬┘│││││││├─┤│    ╠╩╗│  │ ││ ┬</#>",
+            "<#c95e07> ╩ └─┘┴└─┴ ┴┴┘└┘┴ ┴┴─┘  ╚═╝┴─┘└─┘└─┘</#>"]);
     }
 }

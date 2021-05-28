@@ -34,8 +34,8 @@ export default Vue.extend({
   },
   created() {
     this.terminal = new Terminal(this.$site, this.$router);
-    this.screenText = this.terminal.outputText();
-    this.prefix = this.terminal.outputPrefix();
+    this.screenText = this.terminal.output;
+    this.prefix = this.terminal.prefix;
   },
   mounted() {
     document.getElementById("input-text").onkeydown = (event: KeyboardEvent) => {
@@ -43,8 +43,8 @@ export default Vue.extend({
         // 输入命令
         this.terminal.inputCommand(this.inputText);
         // 更新屏幕内容
-        this.screenText = this.terminal.outputText();
-        this.prefix = this.terminal.outputPrefix();
+        this.screenText = this.terminal.output;
+        this.prefix = this.terminal.prefix;
         // 清空输入行
         this.inputText = "";
       } else if (event.key == "ArrowUp") {
