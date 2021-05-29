@@ -5,6 +5,7 @@ import LsCommand from "./LsCommand";
 import ClearCommand from "./ClearCommand";
 import CatCommand from "./CatCommand";
 import CdCommand from "./CdCommand";
+import HelpCommand from "./HelpCommand";
 
 export default class CommandFactory {
 
@@ -18,6 +19,7 @@ export default class CommandFactory {
       ["cd", new CdCommand(this.terminal)],
       ["clear", new ClearCommand(this.terminal)],
       ["echo", new EchoCommand(this.terminal)],
+      ["help", new HelpCommand(this.terminal, this)],
       ["ls", new LsCommand(this.terminal)]
     ])
   }
