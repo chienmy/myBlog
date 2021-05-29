@@ -38,7 +38,7 @@ export default class CommandFactory {
         }
       }
     } else {
-      this.terminal.addLines(`Error: Command <#f00>${commands[0]}</#> is not supported.`);
+      this.terminal.addLines(`Command <#f00>${commands[0]}</#> not found.`);
     }
   }
 

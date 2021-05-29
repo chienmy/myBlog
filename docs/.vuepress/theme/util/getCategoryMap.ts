@@ -13,11 +13,13 @@ function addToMap(map: Map<string, string[]>, arr: string[], page: string) {
 
 export const getCategoryMap = (pages: PageComputed[]) => {
   let categoryMap = new Map<string, string[]>();
-  pages.forEach((page) => {
-    if (page.frontmatter.state === 'post') {
-      let categories = page.frontmatter.categories ? [page.frontmatter.categories[0]] : ["未分类"]
-      addToMap(categoryMap, categories, page.key)
-    }
-  });
+  pages
+    .sort(((a, b) => a.frontmatter.date < b.frontmatter.date ? -1 : 1))
+    .forEach((page) => {
+      if (page.frontmatter.state === 'post') {
+        let categories = page.frontmatter.categories ? [page.frontmatter.categories[0]] : ["未分类"]
+        addToMap(categoryMap, categories, page.key)
+      }
+    });
   return categoryMap;
 }
