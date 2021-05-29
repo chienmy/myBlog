@@ -11,32 +11,26 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { Vue, Component } from 'vue-property-decorator';
 import { Terminal } from "../components";
 
-export default Vue.extend({
-  name: "HomePage",
-  data() {
-    return {
-      terminal: undefined,
-      // 需要逐行显示的span标签
-      screenText: [],
-      // 输入行显示的前缀，之后会把其中的变量拆分出来
-      prefix: "",
-      // 输入文本框文本
-      inputText: ""
-    }
-  },
-  computed: {
+@Component
+export default class HomePage extends Vue {
+  name: string = "HomePage"
+  terminal: Terminal = undefined
+  // 需要逐行显示的span标签
+  screenText: string[] = []
+  // 输入行显示的前缀，之后会把其中的变量拆分出来
+  prefix: string = ""
+  // 输入文本框文本
+  inputText: string = ""
 
-  },
-  methods: {
-  },
   created() {
+    console.log(this.$router)
     this.terminal = new Terminal(this.$site, this.$router);
     this.screenText = this.terminal.output;
     this.prefix = this.terminal.prefix;
-  },
+  }
   mounted() {
     document.getElementById("input-text").onkeydown = (event: KeyboardEvent) => {
       if (event.key === "Enter") {
@@ -64,7 +58,7 @@ export default Vue.extend({
     });
     console.log(this.$site.pages);
   }
-});
+}
 </script>
 
 <style>

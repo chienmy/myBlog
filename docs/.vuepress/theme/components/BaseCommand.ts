@@ -1,5 +1,3 @@
-// 不加这行会报错：`ReferenceError: global is not defined`
-(window as any).global = window;
 import { Command, CommanderError, OptionValues } from "commander";
 import { Terminal } from "./Terminal";
 

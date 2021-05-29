@@ -9,10 +9,9 @@ export default class CatCommand extends BaseCommand {
 
   execute(args: string[]): string | string[] {
     const [options, argv] = this.parseArgs(args,[1, 1]);
-    const page = this.terminal.hasPage(argv[0]);
-    console.log(page)
-    if (page != undefined) {
-      this.terminal.showArticle(argv[0]);
+    const pageKey = this.terminal.getPageKey(argv[0]);
+    if (pageKey != undefined) {
+      this.terminal.showArticle(pageKey);
     } else {
       this.callError(`No such article named ${argv[0]}`);
     }
