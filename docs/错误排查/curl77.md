@@ -1,5 +1,5 @@
 ---
-title: curl: (77) error setting certificate verify locations
+title: curl(77) error setting certificate verify locations
 date: 2021-05-19 21:53:50
 state: post
 categories:
@@ -8,7 +8,7 @@ tags:
   - shell
 ---
 
-# curl: (77) error setting certificate verify locations
+# curl(77) error setting certificate verify locations
 
 尝试1：安装`ca-certificates`
 

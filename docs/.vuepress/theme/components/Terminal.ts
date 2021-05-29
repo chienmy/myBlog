@@ -106,13 +106,13 @@ export class Terminal {
     return this.categoryMap.get(category) != undefined;
   }
 
-  hasPage(pageTitle: string): boolean {
-    this.siteData.pages.forEach((page) => {
+  getPageKey(pageTitle: string): string {
+    for (let page of this.siteData.pages) {
       if (page.title == pageTitle) {
-        return true;
+        return page.key;
       }
-    });
-    return false;
+    }
+    return undefined;
   }
 
   getOnlyPage(pageTitle: string): PageComputed {
@@ -132,13 +132,9 @@ export class Terminal {
   }
 
   // 文章跳转
-  showArticle(title: string): void {
-    for (const page of this.siteData.pages) {
-      if (page.title == title) {
-        this.router.push(page.path);
-        return;
-      }
-    }
+  showArticle(key: string): void {
+    console.log("++",key)
+    this.router.push({name: key});
   }
 
   // 向输出中添加新行
